@@ -11,4 +11,6 @@ CREATE TABLE users
     deleted_at    TIMESTAMPTZ
 );
 
-CREATE INDEX idx_users_email ON users (email);
+CREATE UNIQUE INDEX uq_users_email_active
+    ON users (email)
+    WHERE deleted_at IS NULL;
