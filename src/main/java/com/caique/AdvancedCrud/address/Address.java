@@ -59,7 +59,7 @@ public class Address {
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
-    public Address() {}
+    protected Address() {}
 
     public Address(User user, String zipcode, String street, String number,
                    String complement, String neighborhood, String city, String state) {

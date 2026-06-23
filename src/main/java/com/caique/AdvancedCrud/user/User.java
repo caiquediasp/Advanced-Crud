@@ -54,7 +54,7 @@ public class User {
     @Column(name = "deleted_at")
     private OffsetDateTime deletedAt;
 
-    public User() {}
+    protected User() {}
 
     public User(String name, String email, String passwordHash) {
         this.publicId = UUID.randomUUID();
