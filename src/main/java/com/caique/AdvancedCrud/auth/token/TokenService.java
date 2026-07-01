@@ -27,7 +27,7 @@ public class TokenService {
         this.ttlMinutes = ttlMinutes;
     }
 
-    public String generateToken(UserDetailsImpl userDetails) {
+    public String generateAccessToken(UserDetailsImpl userDetails) {
         Instant now = Instant.now();
 
         String roles = userDetails.getAuthorities().stream()
