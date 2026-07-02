@@ -1,0 +1,70 @@
+package com.caique.AdvancedCrud.address;
+
+import com.caique.AdvancedCrud.address.dto.AddressResponse;
+import com.caique.AdvancedCrud.address.dto.CreateAddressRequest;
+import com.caique.AdvancedCrud.address.dto.UpdateAddressRequest;
+import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/api/v1/addresses")
+public class AddressController {
+
+    private final AddressService addressService;
+
+    public AddressController(AddressService addressService) {
+        this.addressService = addressService;
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public AddressResponse create(@AuthenticationPrincipal Jwt jwt,
+                                  @Valid @RequestBody CreateAddressRequest request) {
+        UUID userId = UUID.fromString(jwt.getSubject());
+        return addressService.create(userId, request);
+    }
+
+    @GetMapping
+    public Page<AddressResponse> listMyAddresses(@AuthenticationPrincipal Jwt jwt, Pageable pageable) {
+        UUID userId = UUID.fromString(jwt.getSubject());
+        return addressService.listMyAddresses(userId, pageable);
+    }
+
+    @GetMapping("/{publicId}")
+    public AddressResponse getOne(@AuthenticationPrincipal Jwt jwt,
+                                  @PathVariable UUID publicId) {
+        UUID userId = UUID.fromString(jwt.getSubject());
+        return addressService.getOne(userId, publicId);
+    }
+
+    @PutMapping("/{publicId}")
+    public AddressResponse update(@AuthenticationPrincipal Jwt jwt,
+                                  @PathVariable UUID publicId,
+                                  @Valid @RequestBody UpdateAddressRequest request) {
+        UUID userId = UUID.fromString(jwt.getSubject());
+        return addressService.update(userId, publicId, request);
+    }
+
+    @DeleteMapping("/{publicId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@AuthenticationPrincipal Jwt jwt,
+                       @PathVariable UUID publicId) {
+        UUID userId = UUID.fromString(jwt.getSubject());
+        addressService.delete(userId, publicId);
+    }
+
+    @PatchMapping("/{publicId}/primary")
+    public AddressResponse setPrimary(@AuthenticationPrincipal Jwt jwt,
+                                      @PathVariable UUID publicId) {
+        UUID userId = UUID.fromString(jwt.getSubject());
+        return addressService.setPrimary(userId, publicId);
+    }
+
+}

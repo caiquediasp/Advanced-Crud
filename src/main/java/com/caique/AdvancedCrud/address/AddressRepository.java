@@ -17,4 +17,6 @@ public interface AddressRepository extends JpaRepository<Address, Long> {
 
     Optional<Address> findByUserIdAndPrimaryIsTrue(Long userId);
 
+    Optional<Address> findFirstByUserIdOrderByCreatedAtAsc(Long userId);
+
 }
