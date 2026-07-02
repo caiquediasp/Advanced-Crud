@@ -34,3 +34,6 @@ build/
 
 ## JWT KEYS
 src/main/resources/keys/*.pem
+
+## DOCUMENTATION
+/documentation
