@@ -7,6 +7,8 @@ import com.caique.AdvancedCrud.user.dto.ChangePasswordRequest;
 import com.caique.AdvancedCrud.user.dto.UpdateUserRequest;
 import com.caique.AdvancedCrud.user.dto.UserResponse;
 import com.caique.AdvancedCrud.user.mapper.UserMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -84,6 +86,19 @@ public class UserService {
                 .orElseThrow(() -> new UserNotFoundException(publicId));
 
         user.delete();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<UserResponse> listAll(Pageable pageable) {
+        return userRepository.findAllByDeletedAtIsNull(pageable)
+                .map(userMapper::toResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public UserResponse getByPublicIdAdmin(UUID publicId) {
+        User user = userRepository.findByPublicIdAndDeletedAtIsNull(publicId)
+                .orElseThrow(() -> new UserNotFoundException(publicId));
+        return userMapper.toResponse(user);
     }
 
 }
