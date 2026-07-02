@@ -1,8 +1,6 @@
 package com.caique.AdvancedCrud.user;
 
-import com.caique.AdvancedCrud.shared.exceptions.EmailAlreadyExistsException;
-import com.caique.AdvancedCrud.shared.exceptions.InvalidPasswordException;
-import com.caique.AdvancedCrud.shared.exceptions.UserNotFoundException;
+import com.caique.AdvancedCrud.shared.exceptions.*;
 import com.caique.AdvancedCrud.user.dto.ChangePasswordRequest;
 import com.caique.AdvancedCrud.user.dto.UpdateUserRequest;
 import com.caique.AdvancedCrud.user.dto.UserResponse;
@@ -13,7 +11,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -98,6 +98,38 @@ public class UserService {
     public UserResponse getByPublicIdAdmin(UUID publicId) {
         User user = userRepository.findByPublicIdAndDeletedAtIsNull(publicId)
                 .orElseThrow(() -> new UserNotFoundException(publicId));
+        return userMapper.toResponse(user);
+    }
+
+    @Transactional
+    public UserResponse updateRoles(UUID adminId, UUID targetPublicId, Set<String> roles) {
+        User user = userRepository.findByPublicIdAndDeletedAtIsNull(targetPublicId)
+                .orElseThrow(() -> new UserNotFoundException(targetPublicId));
+
+        if(adminId.equals(targetPublicId) && !roles.contains("ROLE_ADMIN")) {
+            throw new SelfModificationException("Admin cannot remove their own ADMIN role");
+        }
+
+        Set<Role> userRoles = roles.stream()
+                .map(name -> roleRepository.findByName(name)
+                        .orElseThrow(() -> new RoleNotFoundException(name)))
+                .collect(Collectors.toSet());
+
+        user.getRoles().clear();
+        user.getRoles().addAll(userRoles);
+        return userMapper.toResponse(user);
+    }
+
+    @Transactional
+    public UserResponse updateStatus(UUID adminId, UUID targetPublicId, boolean enabled) {
+        User user = userRepository.findByPublicIdAndDeletedAtIsNull(targetPublicId)
+                .orElseThrow(() -> new UserNotFoundException(targetPublicId));
+
+        if(adminId.equals(targetPublicId) && !enabled) {
+            throw new SelfModificationException("Admin cannot disable themselves");
+        }
+
+        user.setEnabled(enabled);
         return userMapper.toResponse(user);
     }
 
