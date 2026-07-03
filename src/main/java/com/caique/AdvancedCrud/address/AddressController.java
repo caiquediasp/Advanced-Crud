@@ -2,7 +2,10 @@ package com.caique.AdvancedCrud.address;
 
 import com.caique.AdvancedCrud.address.dto.AddressResponse;
 import com.caique.AdvancedCrud.address.dto.CreateAddressRequest;
+import com.caique.AdvancedCrud.address.dto.LookupResponse;
 import com.caique.AdvancedCrud.address.dto.UpdateAddressRequest;
+import com.caique.AdvancedCrud.address.viacep.ViaCepClient;
+import com.caique.AdvancedCrud.address.viacep.ViaCepResponse;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,9 +21,11 @@ import java.util.UUID;
 public class AddressController {
 
     private final AddressService addressService;
+    private final ViaCepClient viaCepClient;
 
-    public AddressController(AddressService addressService) {
+    public AddressController(AddressService addressService, ViaCepClient viaCepClient) {
         this.addressService = addressService;
+        this.viaCepClient = viaCepClient;
     }
 
     @PostMapping
@@ -65,6 +70,18 @@ public class AddressController {
                                       @PathVariable UUID publicId) {
         UUID userId = UUID.fromString(jwt.getSubject());
         return addressService.setPrimary(userId, publicId);
+    }
+
+    @GetMapping("/lookup/{cep}")
+    public LookupResponse lookup(@PathVariable String cep) {
+        ViaCepResponse viaCep = viaCepClient.getAddress(cep);
+        return new LookupResponse(
+                viaCep.cep().replace("-", ""),
+                viaCep.logradouro(),
+                viaCep.bairro(),
+                viaCep.localidade(),
+                viaCep.uf()
+        );
     }
 
 }

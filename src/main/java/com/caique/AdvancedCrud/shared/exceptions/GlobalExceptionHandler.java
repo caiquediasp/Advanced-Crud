@@ -68,8 +68,24 @@ public class GlobalExceptionHandler {
         return pd;
     }
 
+    @ExceptionHandler(CepNotFoundException.class)
+    public ProblemDetail handleCepNotFoundException(CepNotFoundException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND, ex.getMessage());
+        problem.setTitle("CEP not found");
+        return problem;
+    }
+
+    @ExceptionHandler(CepServiceUnavailableException.class)
+    public ProblemDetail handleCepUnavailableException(CepServiceUnavailableException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage());
+        problem.setTitle("Service unavailable");
+        return problem;
+    }
+
     @ExceptionHandler(BadCredentialsException.class)
-    public ProblemDetail handleBadCredentials(BadCredentialsException ex) {
+    public ProblemDetail handleBadCredentialsException(BadCredentialsException ex) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(
                 HttpStatus.UNAUTHORIZED, "Invalid email or password");
         problem.setTitle("Authentication failed");
@@ -77,7 +93,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(AuthorizationDeniedException.class)
-    public ProblemDetail handleAuthorizationDenied(AuthorizationDeniedException ex) {
+    public ProblemDetail handleAuthorizationDeniedException(AuthorizationDeniedException ex) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(
                 HttpStatus.FORBIDDEN, "You don't have permission to access this resource");
         problem.setTitle("Access denied");
