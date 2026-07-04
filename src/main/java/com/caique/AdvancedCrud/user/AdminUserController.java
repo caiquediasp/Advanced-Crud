@@ -3,7 +3,6 @@ package com.caique.AdvancedCrud.user;
 import com.caique.AdvancedCrud.user.dto.UpdateRolesRequest;
 import com.caique.AdvancedCrud.user.dto.UpdateStatusRequest;
 import com.caique.AdvancedCrud.user.dto.UserResponse;
-import com.nimbusds.jwt.JWT;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
