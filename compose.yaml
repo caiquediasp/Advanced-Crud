@@ -10,5 +10,18 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/
 
+  redis:
+    image: redis:8.8.0
+    container_name: redis
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis-data:/data
+    command: redis-server --requirepass redisPassword --appendonly yes
+    restart: unless-stopped
+
+
 volumes:
   pgdata:
+  redis-data:
+    driver: local
