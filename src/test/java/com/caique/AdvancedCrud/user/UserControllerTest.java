@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -37,7 +38,7 @@ class UserControllerTest {
     private JwtDecoder jwtDecoder;
 
     @MockitoBean
-    private org.springframework.security.core.userdetails.UserDetailsService userDetailsService;
+    private UserDetailsService userDetailsService;
 
     @Test
     void getMe_withoutToken_returns401() throws Exception {
