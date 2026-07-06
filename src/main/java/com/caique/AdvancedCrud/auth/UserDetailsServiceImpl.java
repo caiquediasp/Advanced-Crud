@@ -23,4 +23,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 .map(UserDetailsImpl::new)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
+
+    public UserDetails loadUserByPublicId(java.util.UUID publicId) {
+        return userRepository.findByPublicIdAndDeletedAtIsNull(publicId)
+                .map(UserDetailsImpl::new)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+    }
 }

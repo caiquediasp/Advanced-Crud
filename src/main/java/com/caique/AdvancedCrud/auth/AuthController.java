@@ -1,8 +1,10 @@
 package com.caique.AdvancedCrud.auth;
 
 import com.caique.AdvancedCrud.auth.dto.LoginRequest;
+import com.caique.AdvancedCrud.auth.dto.RefreshRequest;
 import com.caique.AdvancedCrud.auth.dto.RegisterRequest;
 import com.caique.AdvancedCrud.auth.dto.TokenResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -24,8 +26,15 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public TokenResponse login(@Valid @RequestBody LoginRequest request) {
-        return this.authService.login(request);
+    public TokenResponse login(@Valid @RequestBody LoginRequest request,
+                               HttpServletRequest http) {
+        String ip = http.getRemoteAddr();
+        return this.authService.login(request, ip);
+    }
+
+    @PostMapping("/refresh")
+    public TokenResponse refresh(@Valid @RequestBody RefreshRequest request) {
+        return this.authService.refresh(request);
     }
 
 }

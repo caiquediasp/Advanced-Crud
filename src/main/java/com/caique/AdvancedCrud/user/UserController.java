@@ -1,5 +1,6 @@
 package com.caique.AdvancedCrud.user;
 
+import com.caique.AdvancedCrud.auth.token.RefreshTokenService;
 import com.caique.AdvancedCrud.user.dto.ChangePasswordRequest;
 import com.caique.AdvancedCrud.user.dto.UpdateUserRequest;
 import com.caique.AdvancedCrud.user.dto.UserResponse;
@@ -16,9 +17,11 @@ import java.util.UUID;
 public class UserController {
 
     private final UserService userService;
+    private final RefreshTokenService refreshTokenService;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, RefreshTokenService refreshTokenService) {
         this.userService = userService;
+        this.refreshTokenService = refreshTokenService;
     }
 
     @GetMapping("/me")
@@ -48,6 +51,13 @@ public class UserController {
     public void deleteUser(@AuthenticationPrincipal Jwt jwt) {
         UUID publicId = UUID.fromString(jwt.getSubject());
         userService.deleteUser(publicId);
+    }
+
+    @PostMapping("/me/logout-all")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void logoutAll(@AuthenticationPrincipal Jwt jwt) {
+        UUID userId = UUID.fromString(jwt.getSubject());
+        refreshTokenService.revokeAllSessions(userId);
     }
 
 }
