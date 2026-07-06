@@ -84,6 +84,15 @@ public class GlobalExceptionHandler {
         return problem;
     }
 
+    @ExceptionHandler(TooManyLoginAttemptsException.class)
+    public ProblemDetail handleTooManyLoginAttemptsException(TooManyLoginAttemptsException ex) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(
+                HttpStatus.TOO_MANY_REQUESTS, ex.getMessage()
+        );
+        pd.setTitle("Too Many Requests");
+        return pd;
+    }
+
     @ExceptionHandler(BadCredentialsException.class)
     public ProblemDetail handleBadCredentialsException(BadCredentialsException ex) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(
