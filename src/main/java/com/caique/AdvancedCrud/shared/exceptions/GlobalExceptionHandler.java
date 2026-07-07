@@ -1,20 +1,32 @@
 package com.caique.AdvancedCrud.shared.exceptions;
 
+import com.caique.AdvancedCrud.shared.errorLog.CriticalErrorEvent;
+import com.caique.AdvancedCrud.shared.errorLog.ErrorLogPublisher;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private final ErrorLogPublisher errorLogPublisher;
+
+    public GlobalExceptionHandler(ErrorLogPublisher errorLogPublisher) {
+        this.errorLogPublisher = errorLogPublisher;
+    }
 
     @ExceptionHandler(UserNotFoundException.class)
     public ProblemDetail handleUserNotFoundException(UserNotFoundException ex) {
@@ -135,12 +147,44 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ProblemDetail handleException(Exception ex) {
+    public ProblemDetail handleException(Exception ex, HttpServletRequest request) {
         log.error(ex.getMessage(), ex);
+
+        publishErrorEvent(ex, request);
+
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(
                 HttpStatus.INTERNAL_SERVER_ERROR, "An Unexpected Error Occurred"
         );
         pd.setTitle("Internal Server Error");
         return pd;
     }
+
+    private void publishErrorEvent(Exception ex, HttpServletRequest request) {
+        try {
+            CriticalErrorEvent event = new CriticalErrorEvent(
+                    UUID.randomUUID(),
+                    ex.getClass().getName(),
+                    ex.getMessage(),
+                    request.getRequestURI(),
+                    resumeStackTrace(ex),
+                    Instant.now()
+            );
+
+            errorLogPublisher.publish(event);
+        } catch(Exception publishException) {
+            log.error("Failed to publish critical error event", publishException);
+        }
+    }
+
+    private String resumeStackTrace(Exception ex) {
+        StackTraceElement[] elements = ex.getStackTrace();
+        StringBuilder sb = new StringBuilder();
+        sb.append(ex.toString()).append("\n");
+        int limit = Math.min(elements.length, 10);
+        for (int i = 0; i < limit; i++) {
+            sb.append("\tat ").append(elements[i]).append("\n");
+        }
+        return sb.toString();
+    }
+
 }

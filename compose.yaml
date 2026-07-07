@@ -20,8 +20,21 @@ services:
     command: redis-server --requirepass redisPassword --appendonly yes
     restart: unless-stopped
 
+  rabbitmq:
+    image: rabbitmq:4.3-management
+    container_name: rabbitmq
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    environment:
+      - RABBITMQ_DEFAULT_USER=rabbitUser
+      - RABBITMQ_DEFAULT_PASS=rabbitPassword
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    restart: unless-stopped
 
 volumes:
   pgdata:
   redis-data:
     driver: local
+  rabbitmq-data:
