@@ -4,6 +4,7 @@ import com.caique.AdvancedCrud.shared.exceptions.CepNotFoundException;
 import com.caique.AdvancedCrud.shared.exceptions.CepServiceUnavailableException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -16,6 +17,7 @@ public class ViaCepClient {
         this.viaCepRestClient = viaCepRestClient;
     }
 
+    @Cacheable(value = "ceps", key = "#cep")
     @CircuitBreaker(name = "viacep", fallbackMethod = "fallback")
     @Retry(name = "viacep")
     public ViaCepResponse getAddress(String cep) {
