@@ -1,5 +1,6 @@
 package com.caique.AdvancedCrud.user;
 
+import com.caique.AdvancedCrud.auth.token.RefreshTokenService;
 import com.caique.AdvancedCrud.shared.config.SecurityConfig;
 import com.caique.AdvancedCrud.user.dto.UserResponse;
 import org.junit.jupiter.api.Test;
@@ -39,6 +40,9 @@ class UserControllerTest {
 
     @MockitoBean
     private UserDetailsService userDetailsService;
+
+    @MockitoBean
+    private RefreshTokenService refreshTokenService;
 
     @Test
     void getMe_withoutToken_returns401() throws Exception {
