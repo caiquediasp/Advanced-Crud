@@ -9,6 +9,8 @@ import com.caique.AdvancedCrud.auth.token.RefreshTokenService;
 import com.caique.AdvancedCrud.auth.token.TokenService;
 import com.caique.AdvancedCrud.shared.exceptions.InvalidRefreshTokenException;
 import com.caique.AdvancedCrud.user.UserService;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -27,13 +29,26 @@ public class AuthService {
     private final LoginRateLimitService loginRateLimitService;
     private final AuthenticationManager authenticationManager;
 
-    public AuthService(UserService userService, UserDetailsServiceImpl userDetailsService, TokenService tokenService, RefreshTokenService refreshTokenService, LoginRateLimitService loginRateLimitService, AuthenticationManager authenticationManager) {
+    private final Counter loginSucessCounter;
+    private final Counter loginFailedCounter;
+
+    public AuthService(UserService userService, UserDetailsServiceImpl userDetailsService, TokenService tokenService, RefreshTokenService refreshTokenService, LoginRateLimitService loginRateLimitService, AuthenticationManager authenticationManager, MeterRegistry meterRegistry) {
         this.userService = userService;
         this.userDetailsService = userDetailsService;
         this.tokenService = tokenService;
         this.refreshTokenService = refreshTokenService;
         this.loginRateLimitService = loginRateLimitService;
         this.authenticationManager = authenticationManager;
+
+        this.loginSucessCounter = Counter.builder("auth.login")
+                .tag("result", "success")
+                .description("Login Attempts")
+                .register(meterRegistry);
+
+        this.loginFailedCounter = Counter.builder("auth.login")
+                .tag("result", "failed")
+                .description("Login Attempts")
+                .register(meterRegistry);
     }
 
     public void register(RegisterRequest request) {
@@ -55,9 +70,11 @@ public class AuthService {
             String accessToken = tokenService.generateAccessToken(userDetails);
             UUID refreshToken = refreshTokenService.createNewToken(userId);
 
+            loginSucessCounter.increment();
             return new TokenResponse(accessToken, refreshToken.toString(), tokenService.accessTokenTtlSeconds());
         } catch (AuthenticationException e) {
             loginRateLimitService.recordFailure(request.email(), ip);
+            loginFailedCounter.increment();
             throw e;
         }
     }

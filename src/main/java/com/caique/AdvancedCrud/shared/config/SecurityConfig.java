@@ -1,7 +1,9 @@
 package com.caique.AdvancedCrud.shared.config;
 
+import org.springframework.boot.security.autoconfigure.actuate.web.servlet.EndpointRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -24,6 +26,18 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     @Bean
+    @Order(1)
+    public SecurityFilterChain actuatorFilterChain(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher(EndpointRequest.toAnyEndpoint())
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+                .csrf(AbstractHttpConfigurer::disable);
+
+        return http.build();
+    }
+
+    @Bean
+    @Order(2)
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
@@ -31,7 +45,6 @@ public class SecurityConfig {
                         -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",

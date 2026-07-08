@@ -1,6 +1,8 @@
 package com.caique.AdvancedCrud.auth.rateLimit;
 
 import com.caique.AdvancedCrud.shared.exceptions.TooManyLoginAttemptsException;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -17,14 +19,19 @@ public class LoginRateLimitService {
     private static final Duration WINDOW = Duration.ofMinutes(15);
 
     private final StringRedisTemplate redis;
+    private final Counter rateLimitTriggeredCounter;
 
-    public LoginRateLimitService(StringRedisTemplate redis) {
+    public LoginRateLimitService(StringRedisTemplate redis, MeterRegistry meterRegistry) {
         this.redis = redis;
+        this.rateLimitTriggeredCounter = Counter.builder("auth.rate_limit.triggered")
+                .description("Number of times that rate limit was triggered")
+                .register(meterRegistry);
     }
 
     public void checkAllowed(String email, String ip) {
         if (countOf(EMAIL_PREFIX + email) >= MAX_ATTEMPTS_EMAIL
                 || countOf(IP_PREFIX + ip) >= MAX_ATTEMPTS_IP) {
+            rateLimitTriggeredCounter.increment();
             throw new TooManyLoginAttemptsException();
         }
     }

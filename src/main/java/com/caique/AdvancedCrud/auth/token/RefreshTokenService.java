@@ -1,6 +1,8 @@
 package com.caique.AdvancedCrud.auth.token;
 
 import com.caique.AdvancedCrud.shared.exceptions.InvalidRefreshTokenException;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -20,9 +22,22 @@ public class RefreshTokenService {
     private final RedisTemplate<String, RefreshToken> tokenRedis;
     private final StringRedisTemplate familyRedis;
 
-    public RefreshTokenService(RedisTemplate<String, RefreshToken> tokenRedis, StringRedisTemplate familyRedis) {
+    private final Counter loginRefreshTokenCounter;
+    private final Counter rotationRefreshTokenCounter;
+
+    public RefreshTokenService(RedisTemplate<String, RefreshToken> tokenRedis, StringRedisTemplate familyRedis, MeterRegistry meterRegistry) {
         this.tokenRedis = tokenRedis;
         this.familyRedis = familyRedis;
+
+        this.loginRefreshTokenCounter = Counter.builder("refresh_token.created")
+                .tag("reason", "login")
+                .description("Generated Refresh Token Quantity")
+                .register(meterRegistry);
+
+        this.rotationRefreshTokenCounter = Counter.builder("refresh_token.created")
+                .tag("reason", "rotation")
+                .description("Generated Refresh Token Quantity")
+                .register(meterRegistry);
     }
 
     public UUID createNewToken(UUID userId) {
@@ -37,6 +52,7 @@ public class RefreshTokenService {
         RefreshToken token = new RefreshToken(tokenId, familyId, userId, false);
         tokenRedis.opsForValue().set(TOKEN_PREFIX + tokenId, token, TTL);
 
+        loginRefreshTokenCounter.increment();
         return tokenId;
     }
 
@@ -64,6 +80,7 @@ public class RefreshTokenService {
         RefreshToken newToken = new RefreshToken(newTokenId, token.familyId(), token.userId(), false);
         tokenRedis.opsForValue().set(TOKEN_PREFIX + newTokenId, newToken, TTL);
 
+        rotationRefreshTokenCounter.increment();
         return new RotationResult(newTokenId, token.userId());
     }
 
