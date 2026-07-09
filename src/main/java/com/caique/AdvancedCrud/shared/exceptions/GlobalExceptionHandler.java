@@ -8,7 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
-import org.springframework.security.core.parameters.P;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -146,6 +146,15 @@ public class GlobalExceptionHandler {
         return pd;
     }
 
+    @ExceptionHandler(AuthenticationException.class)
+    public ProblemDetail handleAuthenticationException(AuthenticationException ex) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(
+                HttpStatus.UNAUTHORIZED, "Authentication Failed"
+        );
+        pd.setTitle("Authentication Failed");
+        return pd;
+    }
+
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleException(Exception ex, HttpServletRequest request) {
         log.error(ex.getMessage(), ex);
@@ -171,7 +180,7 @@ public class GlobalExceptionHandler {
             );
 
             errorLogPublisher.publish(event);
-        } catch(Exception publishException) {
+        } catch (Exception publishException) {
             log.error("Failed to publish critical error event", publishException);
         }
     }
