@@ -4,6 +4,7 @@ import com.caique.AdvancedCrud.shared.errorLog.CriticalErrorEvent;
 import com.caique.AdvancedCrud.shared.errorLog.ErrorLogPublisher;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -129,6 +130,15 @@ public class GlobalExceptionHandler {
                 HttpStatus.UNAUTHORIZED, ex.getMessage());
         problem.setTitle("Authentication failed");
         return problem;
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ProblemDetail handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(
+                HttpStatus.CONFLICT, "The request conflicts with the current state of the data"
+        );
+        pd.setTitle("Data Conflict");
+        return pd;
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
