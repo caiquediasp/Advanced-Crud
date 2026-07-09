@@ -122,6 +122,7 @@ public class UserService {
 
         user.getRoles().clear();
         user.getRoles().addAll(userRoles);
+        refreshTokenService.revokeAllSessions(targetPublicId);
         return userMapper.toResponse(user);
     }
 
@@ -135,6 +136,7 @@ public class UserService {
         }
 
         user.setEnabled(enabled);
+        refreshTokenService.revokeAllSessions(targetPublicId);
         return userMapper.toResponse(user);
     }
 
