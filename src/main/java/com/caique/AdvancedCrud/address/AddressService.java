@@ -39,7 +39,7 @@ public class AddressService {
                 user, request.zipcode(), request.street(), request.number(),
                 request.complement(), request.neighborhood(), request.city(), request.state());
 
-        boolean isFirst = addressRepository.findByUserId(user.getId(), Pageable.unpaged()).isEmpty();
+        boolean isFirst = !addressRepository.existsByUserId(user.getId());
         if (isFirst) {
             address.setPrimary(true);
         }
@@ -116,6 +116,7 @@ public class AddressService {
                 .ifPresent(current -> {
                     if (!current.getPublicId().equals(addressPublicId)) {
                         current.setPrimary(false);
+                        addressRepository.flush();
                     }
                 });
 

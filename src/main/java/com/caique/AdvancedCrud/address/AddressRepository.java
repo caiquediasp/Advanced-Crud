@@ -13,6 +13,8 @@ public interface AddressRepository extends JpaRepository<Address, Long> {
 
     Page<Address> findByUserId(Long userId, Pageable pageable);
 
+    boolean existsByUserId(Long userId);
+
     Optional<Address> findByPublicIdAndUserId(UUID publicId, Long userId);
 
     Optional<Address> findByUserIdAndPrimaryIsTrue(Long userId);

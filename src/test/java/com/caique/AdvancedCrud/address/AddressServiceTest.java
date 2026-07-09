@@ -59,8 +59,7 @@ class AddressServiceTest {
         UUID userPublicId = UUID.randomUUID();
         mockUserWithId(userPublicId, 1L);
 
-        when(addressRepository.findByUserId(eq(1L), any(Pageable.class)))
-                .thenReturn(Page.empty());
+        when(addressRepository.existsByUserId(1L)).thenReturn(false);
 
         addressService.create(userPublicId, sampleCreateRequest());
 
@@ -74,10 +73,7 @@ class AddressServiceTest {
         UUID userPublicId = UUID.randomUUID();
         mockUserWithId(userPublicId, 1L);
 
-        Page<Address> nonEmpty = new org.springframework.data.domain.PageImpl<>(
-                List.of(mock(Address.class)));
-        when(addressRepository.findByUserId(eq(1L), any(Pageable.class)))
-                .thenReturn(nonEmpty);
+        when(addressRepository.existsByUserId(1L)).thenReturn(true);
 
         addressService.create(userPublicId, sampleCreateRequest());
 
