@@ -1,5 +1,6 @@
 package com.caique.AdvancedCrud.user;
 
+import com.caique.AdvancedCrud.auth.token.RefreshTokenService;
 import com.caique.AdvancedCrud.shared.exceptions.EmailAlreadyExistsException;
 import com.caique.AdvancedCrud.shared.exceptions.InvalidPasswordException;
 import com.caique.AdvancedCrud.shared.exceptions.RoleNotFoundException;
@@ -39,6 +40,9 @@ class UserServiceTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private RefreshTokenService refreshTokenService;
 
     @InjectMocks
     private UserService userService;

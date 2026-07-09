@@ -1,5 +1,6 @@
 package com.caique.AdvancedCrud.user;
 
+import com.caique.AdvancedCrud.auth.token.RefreshTokenService;
 import com.caique.AdvancedCrud.shared.exceptions.*;
 import com.caique.AdvancedCrud.user.dto.ChangePasswordRequest;
 import com.caique.AdvancedCrud.user.dto.UpdateUserRequest;
@@ -22,12 +23,14 @@ public class UserService {
     private final RoleRepository roleRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final RefreshTokenService refreshTokenService;
 
-    public UserService(UserRepository userRepository, RoleRepository roleRepository, UserMapper userMapper, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, RoleRepository roleRepository, UserMapper userMapper, PasswordEncoder passwordEncoder, RefreshTokenService refreshTokenService) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
+        this.refreshTokenService = refreshTokenService;
     }
 
     @Transactional
@@ -78,6 +81,7 @@ public class UserService {
         }
 
         user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+        refreshTokenService.revokeAllSessions(publicId);
     }
 
     @Transactional
@@ -86,6 +90,7 @@ public class UserService {
                 .orElseThrow(() -> new UserNotFoundException(publicId));
 
         user.delete();
+        refreshTokenService.revokeAllSessions(publicId);
     }
 
     @Transactional(readOnly = true)
