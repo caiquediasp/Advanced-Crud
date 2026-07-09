@@ -5,7 +5,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.type.SqlTypes;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -45,7 +47,8 @@ public class Address {
     @Column(nullable = false, length = 100)
     private String city;
 
-    @Column(nullable = false, length = 2)
+    @JdbcTypeCode(SqlTypes.CHAR)
+    @Column(nullable = false, columnDefinition = "char(2)")
     private String state;
 
     @Column(name = "is_primary", nullable = false)
