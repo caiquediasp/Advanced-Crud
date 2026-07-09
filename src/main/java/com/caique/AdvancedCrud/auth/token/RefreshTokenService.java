@@ -5,9 +5,13 @@ import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.RedisScript;
+import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -21,6 +25,8 @@ public class RefreshTokenService {
 
     private final RedisTemplate<String, RefreshToken> tokenRedis;
     private final StringRedisTemplate familyRedis;
+    private final JacksonJsonRedisSerializer<RefreshToken> tokenSerializer =
+            new JacksonJsonRedisSerializer<>(RefreshToken.class);
 
     private final Counter loginRefreshTokenCounter;
     private final Counter rotationRefreshTokenCounter;
@@ -58,27 +64,25 @@ public class RefreshTokenService {
 
     public RotationResult rotate(UUID tokenId) {
         RefreshToken token = tokenRedis.opsForValue().get(TOKEN_PREFIX + tokenId);
-
         if (token == null) {
             throw new InvalidRefreshTokenException();
         }
 
-        String familyStatus = familyRedis.opsForValue().get(FAMILY_PREFIX + token.familyId());
-        if (!"valid".equals(familyStatus)) {
-            throw new InvalidRefreshTokenException();
-        }
-
-        if (token.used()) {
-            familyRedis.opsForValue().set(FAMILY_PREFIX + token.familyId(), "compromised", TTL);
-            throw new InvalidRefreshTokenException();
-        }
-
-        RefreshToken used = new RefreshToken(token.tokenId(), token.familyId(), token.userId(), true);
-        tokenRedis.opsForValue().set(TOKEN_PREFIX + tokenId, used, TTL);
-
         UUID newTokenId = UUID.randomUUID();
-        RefreshToken newToken = new RefreshToken(newTokenId, token.familyId(), token.userId(), false);
-        tokenRedis.opsForValue().set(TOKEN_PREFIX + newTokenId, newToken, TTL);
+        RefreshToken newToken = new RefreshToken(newTokenId, token.familyId(),
+                token.userId(), false);
+
+        String result = familyRedis.execute(
+                ROTATE_SCRIPT,
+                List.of(TOKEN_PREFIX + tokenId,
+                        FAMILY_PREFIX + token.familyId(),
+                        TOKEN_PREFIX + newTokenId),
+                String.valueOf(TTL.toSeconds()),
+                new String(tokenSerializer.serialize(newToken), StandardCharsets.UTF_8));
+
+        if (!"OK".equals(result)) {
+            throw new InvalidRefreshTokenException();
+        }
 
         rotationRefreshTokenCounter.increment();
         return new RotationResult(newTokenId, token.userId());
@@ -99,4 +103,28 @@ public class RefreshTokenService {
 
     public record RotationResult(UUID newTokenId, UUID userId) {
     }
+
+    private static final RedisScript<String> ROTATE_SCRIPT = RedisScript.of("""
+          local token_json = redis.call('GET', KEYS[1])
+          if not token_json then
+              return 'NOT_FOUND'
+          end
+
+          local token = cjson.decode(token_json)
+
+          if redis.call('GET', KEYS[2]) ~= 'valid' then
+              return 'FAMILY_INVALID'
+          end
+
+          if token.used then
+              redis.call('SET', KEYS[2], 'compromised', 'EX', ARGV[1])
+              return 'REUSE_DETECTED'
+          end
+
+          token.used = true
+          redis.call('SET', KEYS[1], cjson.encode(token), 'EX', ARGV[1])
+          redis.call('SET', KEYS[3], ARGV[2], 'EX', ARGV[1])
+          return 'OK'
+          """, String.class);
+
 }
