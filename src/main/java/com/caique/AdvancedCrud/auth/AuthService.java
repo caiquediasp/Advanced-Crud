@@ -12,6 +12,7 @@ import com.caique.AdvancedCrud.user.UserService;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -90,6 +91,10 @@ public class AuthService {
         RefreshTokenService.RotationResult result = refreshTokenService.rotate(tokenId);
 
         UserDetailsImpl userDetails = (UserDetailsImpl) userDetailsService.loadUserByPublicId(result.userId());
+        if(!userDetails.isEnabled()) {
+            refreshTokenService.revokeAllSessions(userDetails.getUser().getPublicId());
+            throw new DisabledException("User not active");
+        }
         String accessToken = tokenService.generateAccessToken(userDetails);
 
         return new TokenResponse(accessToken, result.newTokenId().toString(), tokenService.accessTokenTtlSeconds());
