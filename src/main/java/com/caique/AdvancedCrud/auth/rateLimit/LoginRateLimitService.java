@@ -1,6 +1,6 @@
 package com.caique.AdvancedCrud.auth.rateLimit;
 
-import com.caique.AdvancedCrud.shared.exceptions.TooManyLoginAttemptsException;
+import com.caique.AdvancedCrud.shared.exceptions.TooManyRequestsException;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -32,7 +32,7 @@ public class LoginRateLimitService {
         if (countOf(EMAIL_PREFIX + email) >= MAX_ATTEMPTS_EMAIL
                 || countOf(IP_PREFIX + ip) >= MAX_ATTEMPTS_IP) {
             rateLimitTriggeredCounter.increment();
-            throw new TooManyLoginAttemptsException();
+            throw new TooManyRequestsException("Too many login attempts. Try again later.");
         }
     }
 

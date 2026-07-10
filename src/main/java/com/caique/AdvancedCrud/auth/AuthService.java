@@ -5,6 +5,7 @@ import com.caique.AdvancedCrud.auth.dto.RefreshRequest;
 import com.caique.AdvancedCrud.auth.dto.RegisterRequest;
 import com.caique.AdvancedCrud.auth.dto.TokenResponse;
 import com.caique.AdvancedCrud.auth.rateLimit.LoginRateLimitService;
+import com.caique.AdvancedCrud.auth.rateLimit.RefreshRateLimitService;
 import com.caique.AdvancedCrud.auth.token.RefreshTokenService;
 import com.caique.AdvancedCrud.auth.token.TokenService;
 import com.caique.AdvancedCrud.shared.exceptions.InvalidRefreshTokenException;
@@ -28,17 +29,19 @@ public class AuthService {
     private final TokenService tokenService;
     private final RefreshTokenService refreshTokenService;
     private final LoginRateLimitService loginRateLimitService;
+    private final RefreshRateLimitService refreshRateLimitService;
     private final AuthenticationManager authenticationManager;
 
     private final Counter loginSucessCounter;
     private final Counter loginFailedCounter;
 
-    public AuthService(UserService userService, UserDetailsServiceImpl userDetailsService, TokenService tokenService, RefreshTokenService refreshTokenService, LoginRateLimitService loginRateLimitService, AuthenticationManager authenticationManager, MeterRegistry meterRegistry) {
+    public AuthService(UserService userService, UserDetailsServiceImpl userDetailsService, TokenService tokenService, RefreshTokenService refreshTokenService, LoginRateLimitService loginRateLimitService, RefreshRateLimitService refreshRateLimitService, AuthenticationManager authenticationManager, MeterRegistry meterRegistry) {
         this.userService = userService;
         this.userDetailsService = userDetailsService;
         this.tokenService = tokenService;
         this.refreshTokenService = refreshTokenService;
         this.loginRateLimitService = loginRateLimitService;
+        this.refreshRateLimitService = refreshRateLimitService;
         this.authenticationManager = authenticationManager;
 
         this.loginSucessCounter = Counter.builder("auth.login")
@@ -80,7 +83,9 @@ public class AuthService {
         }
     }
 
-    public TokenResponse refresh(RefreshRequest request) {
+    public TokenResponse refresh(RefreshRequest request, String ip) {
+        refreshRateLimitService.checkAllowed(ip);
+
         UUID tokenId;
         try {
             tokenId = UUID.fromString(request.refreshToken());

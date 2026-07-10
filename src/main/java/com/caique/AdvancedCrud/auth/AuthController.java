@@ -33,8 +33,10 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public TokenResponse refresh(@Valid @RequestBody RefreshRequest request) {
-        return this.authService.refresh(request);
+    public TokenResponse refresh(@Valid @RequestBody RefreshRequest request,
+                                 HttpServletRequest http) {
+        String ip = http.getRemoteAddr();
+        return this.authService.refresh(request, ip);
     }
 
 }

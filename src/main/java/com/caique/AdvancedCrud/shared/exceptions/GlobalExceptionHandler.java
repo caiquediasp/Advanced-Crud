@@ -103,8 +103,8 @@ public class GlobalExceptionHandler {
         return problem;
     }
 
-    @ExceptionHandler(TooManyLoginAttemptsException.class)
-    public ProblemDetail handleTooManyLoginAttemptsException(TooManyLoginAttemptsException ex) {
+    @ExceptionHandler(TooManyRequestsException.class)
+    public ProblemDetail handleTooRequestsException(TooManyRequestsException ex) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(
                 HttpStatus.TOO_MANY_REQUESTS, ex.getMessage()
         );
