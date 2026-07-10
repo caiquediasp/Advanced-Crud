@@ -11,14 +11,14 @@ import java.util.UUID;
 @Repository
 public interface AddressRepository extends JpaRepository<Address, Long> {
 
-    Page<Address> findByUserId(Long userId, Pageable pageable);
+    Page<Address> findByUser_PublicIdAndUser_DeletedAtIsNull(UUID userPublicId, Pageable pageable);
+
+    Optional<Address> findByPublicIdAndUser_PublicIdAndUser_DeletedAtIsNull(UUID publicId, UUID userPublicId);
+
+    Optional<Address> findByUser_PublicIdAndPrimaryIsTrue(UUID userPublicId);
+
+    Optional<Address> findFirstByUser_PublicIdOrderByCreatedAtAsc(UUID userPublicId);
 
     boolean existsByUserId(Long userId);
-
-    Optional<Address> findByPublicIdAndUserId(UUID publicId, Long userId);
-
-    Optional<Address> findByUserIdAndPrimaryIsTrue(Long userId);
-
-    Optional<Address> findFirstByUserIdOrderByCreatedAtAsc(Long userId);
 
 }

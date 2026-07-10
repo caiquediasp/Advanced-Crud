@@ -50,31 +50,18 @@ public class AddressService {
 
     @Transactional(readOnly = true)
     public Page<AddressResponse> listMyAddresses(UUID userPublicId, Pageable pageable) {
-        User user = userRepository.findByPublicIdAndDeletedAtIsNull(userPublicId)
-                .orElseThrow(() -> new UserNotFoundException(userPublicId));
-
-        return addressRepository.findByUserId(user.getId(), pageable)
+        return addressRepository.findByUser_PublicIdAndUser_DeletedAtIsNull(userPublicId, pageable)
                 .map(addressMapper::toResponse);
     }
 
     @Transactional(readOnly = true)
     public AddressResponse getOne(UUID userPublicId, UUID addressPublicId) {
-        User user = userRepository.findByPublicIdAndDeletedAtIsNull(userPublicId)
-                .orElseThrow(() -> new UserNotFoundException(userPublicId));
-
-        Address address = addressRepository.findByPublicIdAndUserId(addressPublicId, user.getId())
-                .orElseThrow(() -> new AddressNotFoundException(addressPublicId));
-
-        return addressMapper.toResponse(address);
+        return addressMapper.toResponse(findOwnedAddress(userPublicId, addressPublicId));
     }
 
     @Transactional
     public AddressResponse update(UUID userPublicId, UUID addressPublicId, UpdateAddressRequest request) {
-        User user = userRepository.findByPublicIdAndDeletedAtIsNull(userPublicId)
-                .orElseThrow(() -> new UserNotFoundException(userPublicId));
-
-        Address address = addressRepository.findByPublicIdAndUserId(addressPublicId, user.getId())
-                .orElseThrow(() -> new AddressNotFoundException(addressPublicId));
+        Address address = findOwnedAddress(userPublicId, addressPublicId);
 
         address.setZipcode(request.zipcode());
         address.setStreet(request.street());
@@ -89,30 +76,22 @@ public class AddressService {
 
     @Transactional
     public void delete(UUID userPublicId, UUID addressPublicId) {
-        User user = userRepository.findByPublicIdAndDeletedAtIsNull(userPublicId)
-                .orElseThrow(() -> new UserNotFoundException(userPublicId));
-
-        Address address = addressRepository.findByPublicIdAndUserId(addressPublicId, user.getId())
-                .orElseThrow(() -> new AddressNotFoundException(addressPublicId));
+        Address address = findOwnedAddress(userPublicId, addressPublicId);
 
         boolean wasPrimary = address.isPrimary();
         addressRepository.delete(address);
 
         if (wasPrimary) {
-            addressRepository.findFirstByUserIdOrderByCreatedAtAsc(user.getId())
+            addressRepository.findFirstByUser_PublicIdOrderByCreatedAtAsc(userPublicId)
                     .ifPresent(next -> next.setPrimary(true));
         }
     }
 
     @Transactional
     public AddressResponse setPrimary(UUID userPublicId, UUID addressPublicId) {
-        User user = userRepository.findByPublicIdAndDeletedAtIsNull(userPublicId)
-                .orElseThrow(() -> new UserNotFoundException(userPublicId));
+        Address target = findOwnedAddress(userPublicId, addressPublicId);
 
-        Address target = addressRepository.findByPublicIdAndUserId(addressPublicId, user.getId())
-                .orElseThrow(() -> new AddressNotFoundException(addressPublicId));
-
-        addressRepository.findByUserIdAndPrimaryIsTrue(user.getId())
+        addressRepository.findByUser_PublicIdAndPrimaryIsTrue(userPublicId)
                 .ifPresent(current -> {
                     if (!current.getPublicId().equals(addressPublicId)) {
                         current.setPrimary(false);
@@ -122,6 +101,12 @@ public class AddressService {
 
         target.setPrimary(true);
         return addressMapper.toResponse(target);
+    }
+
+    private Address findOwnedAddress(UUID userPublicId, UUID addressPublicId) {
+        return addressRepository
+                .findByPublicIdAndUser_PublicIdAndUser_DeletedAtIsNull(addressPublicId, userPublicId)
+                .orElseThrow(() -> new AddressNotFoundException(addressPublicId));
     }
 
 }

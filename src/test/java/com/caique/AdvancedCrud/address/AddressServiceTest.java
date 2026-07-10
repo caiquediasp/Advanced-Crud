@@ -11,18 +11,13 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -87,15 +82,14 @@ class AddressServiceTest {
         UUID userPublicId = UUID.randomUUID();
         UUID targetPublicId = UUID.randomUUID();
         UUID previousPublicId = UUID.randomUUID();
-        mockUserWithId(userPublicId, 1L);
 
         Address target = mock(Address.class);
-        when(addressRepository.findByPublicIdAndUserId(targetPublicId, 1L))
+        when(addressRepository.findByPublicIdAndUser_PublicIdAndUser_DeletedAtIsNull(targetPublicId, userPublicId))
                 .thenReturn(Optional.of(target));
 
         Address previousPrimary = mock(Address.class);
         when(previousPrimary.getPublicId()).thenReturn(previousPublicId);
-        when(addressRepository.findByUserIdAndPrimaryIsTrue(1L))
+        when(addressRepository.findByUser_PublicIdAndPrimaryIsTrue(userPublicId))
                 .thenReturn(Optional.of(previousPrimary));
 
         addressService.setPrimary(userPublicId, targetPublicId);
@@ -108,15 +102,14 @@ class AddressServiceTest {
     void delete_primaryAddress_promotesOldestRemaining() {
         UUID userPublicId = UUID.randomUUID();
         UUID addressPublicId = UUID.randomUUID();
-        mockUserWithId(userPublicId, 1L);
 
         Address primary = mock(Address.class);
         when(primary.isPrimary()).thenReturn(true);
-        when(addressRepository.findByPublicIdAndUserId(addressPublicId, 1L))
+        when(addressRepository.findByPublicIdAndUser_PublicIdAndUser_DeletedAtIsNull(addressPublicId, userPublicId))
                 .thenReturn(Optional.of(primary));
 
         Address nextOldest = mock(Address.class);
-        when(addressRepository.findFirstByUserIdOrderByCreatedAtAsc(1L))
+        when(addressRepository.findFirstByUser_PublicIdOrderByCreatedAtAsc(userPublicId))
                 .thenReturn(Optional.of(nextOldest));
 
         addressService.delete(userPublicId, addressPublicId);
@@ -129,26 +122,24 @@ class AddressServiceTest {
     void delete_nonPrimaryAddress_doesNotPromote() {
         UUID userPublicId = UUID.randomUUID();
         UUID addressPublicId = UUID.randomUUID();
-        mockUserWithId(userPublicId, 1L);
 
         Address nonPrimary = mock(Address.class);
         when(nonPrimary.isPrimary()).thenReturn(false);
-        when(addressRepository.findByPublicIdAndUserId(addressPublicId, 1L))
+        when(addressRepository.findByPublicIdAndUser_PublicIdAndUser_DeletedAtIsNull(addressPublicId, userPublicId))
                 .thenReturn(Optional.of(nonPrimary));
 
         addressService.delete(userPublicId, addressPublicId);
 
         verify(addressRepository).delete(nonPrimary);
-        verify(addressRepository, never()).findFirstByUserIdOrderByCreatedAtAsc(anyLong());
+        verify(addressRepository, never()).findFirstByUser_PublicIdOrderByCreatedAtAsc(any());
     }
 
     @Test
     void getOne_addressOfAnotherUser_throwsAddressNotFound() {
         UUID userPublicId = UUID.randomUUID();
         UUID addressPublicId = UUID.randomUUID();
-        mockUserWithId(userPublicId, 1L);
 
-        when(addressRepository.findByPublicIdAndUserId(addressPublicId, 1L))
+        when(addressRepository.findByPublicIdAndUser_PublicIdAndUser_DeletedAtIsNull(addressPublicId, userPublicId))
                 .thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> addressService.getOne(userPublicId, addressPublicId))
