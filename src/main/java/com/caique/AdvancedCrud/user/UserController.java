@@ -17,11 +17,9 @@ import java.util.UUID;
 public class UserController {
 
     private final UserService userService;
-    private final RefreshTokenService refreshTokenService;
 
-    public UserController(UserService userService, RefreshTokenService refreshTokenService) {
+    public UserController(UserService userService) {
         this.userService = userService;
-        this.refreshTokenService = refreshTokenService;
     }
 
     @GetMapping("/me")
