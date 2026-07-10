@@ -140,4 +140,8 @@ public class UserService {
         return userMapper.toResponse(user);
     }
 
+    public void logout(UUID userId) {
+        refreshTokenService.revokeAllSessions(userId);
+    }
+
 }

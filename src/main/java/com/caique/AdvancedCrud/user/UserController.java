@@ -57,7 +57,7 @@ public class UserController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void logoutAll(@AuthenticationPrincipal Jwt jwt) {
         UUID userId = UUID.fromString(jwt.getSubject());
-        refreshTokenService.revokeAllSessions(userId);
+        userService.logout(userId);
     }
 
 }
