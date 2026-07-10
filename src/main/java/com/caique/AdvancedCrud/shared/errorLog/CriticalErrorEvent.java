@@ -10,6 +10,6 @@ public record CriticalErrorEvent(
         String message,
         String requestPath,
         String stackTrace,
-        Instant occuredAt
+        Instant occurredAt
 ) implements Serializable {
 }

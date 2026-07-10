@@ -28,7 +28,7 @@ public class ErrorLogConsumer {
                 event.message(),
                 event.requestPath(),
                 event.stackTrace(),
-                event.occuredAt()
+                event.occurredAt()
         );
 
         errorLogRepository.save(errorLog);
