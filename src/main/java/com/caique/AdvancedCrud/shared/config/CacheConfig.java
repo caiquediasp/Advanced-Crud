@@ -19,15 +19,18 @@ public class CacheConfig {
 
     @Bean
     public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
-        RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofDays(3))
-                .serializeValuesWith(
-                        RedisSerializationContext.SerializationPair.fromSerializer(
-                                new JacksonJsonRedisSerializer<>(ViaCepResponse.class)));
-
         return RedisCacheManager
                 .builder(connectionFactory)
-                .cacheDefaults(config)
+                .cacheDefaults(RedisCacheConfiguration
+                        .defaultCacheConfig()
+                        .entryTtl(Duration.ofMinutes(10)))
+                .withCacheConfiguration("ceps", RedisCacheConfiguration.defaultCacheConfig()
+                        .entryTtl(Duration.ofDays(3))
+                        .serializeValuesWith(
+                                RedisSerializationContext.SerializationPair.fromSerializer(
+                                        new JacksonJsonRedisSerializer<>(ViaCepResponse.class)
+                                )
+                        ))
                 .build();
     }
 }
