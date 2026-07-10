@@ -6,11 +6,11 @@ import jakarta.validation.constraints.Size;
 
 public record CreateAddressRequest(
         @NotBlank @Pattern(regexp = "\\d{8}", message = "Zipcode must be 8 digits") String zipcode,
-        @NotBlank String street,
+        @NotBlank @Size(max = 255) String street,
         @Size(max = 8) String number,
-        String complement,
-        @NotBlank String neighborhood,
-        @NotBlank String city,
-        @NotBlank @Size(min = 2, max = 2) String state
+        @Size(max = 100) String complement,
+        @NotBlank @Size(max = 100) String neighborhood,
+        @NotBlank @Size(max = 100) String city,
+        @NotBlank @Pattern(regexp = "[A-Z]{2}") @Size(min = 2, max = 2) String state
 ) {
 }
