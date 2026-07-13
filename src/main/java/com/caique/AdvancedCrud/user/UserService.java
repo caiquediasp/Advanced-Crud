@@ -61,13 +61,23 @@ public class UserService {
         User user = userRepository.findByPublicIdAndDeletedAtIsNull(publicId)
                 .orElseThrow(() -> new UserNotFoundException(publicId));
 
-        if (!user.getEmail().equals(request.email())
-                && userRepository.existsByEmailAndDeletedAtIsNull(request.email())) {
-            throw new EmailAlreadyExistsException(request.email());
+        boolean emailChanged = !user.getEmail().equals(request.email());
+
+        if (emailChanged) {
+            if (request.currentPassword() == null
+                    || !passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
+                throw new InvalidPasswordException();
+            }
+
+            if (userRepository.existsByEmailAndDeletedAtIsNull(request.email())) {
+                throw new EmailAlreadyExistsException(request.email());
+            }
         }
 
         user.setName(request.name());
         user.setEmail(request.email());
+
+        if (emailChanged) refreshTokenService.revokeAllSessions(publicId);
         return userMapper.toResponse(user);
     }
 
@@ -76,7 +86,7 @@ public class UserService {
         User user = userRepository.findByPublicIdAndDeletedAtIsNull(publicId)
                 .orElseThrow(() -> new UserNotFoundException(publicId));
 
-        if(!passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
+        if (!passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
             throw new InvalidPasswordException();
         }
 
@@ -111,7 +121,7 @@ public class UserService {
         User user = userRepository.findByPublicIdAndDeletedAtIsNull(targetPublicId)
                 .orElseThrow(() -> new UserNotFoundException(targetPublicId));
 
-        if(adminId.equals(targetPublicId) && !roles.contains("ROLE_ADMIN")) {
+        if (adminId.equals(targetPublicId) && !roles.contains("ROLE_ADMIN")) {
             throw new SelfModificationException("Admin cannot remove their own ADMIN role");
         }
 
@@ -131,7 +141,7 @@ public class UserService {
         User user = userRepository.findByPublicIdAndDeletedAtIsNull(targetPublicId)
                 .orElseThrow(() -> new UserNotFoundException(targetPublicId));
 
-        if(adminId.equals(targetPublicId) && !enabled) {
+        if (adminId.equals(targetPublicId) && !enabled) {
             throw new SelfModificationException("Admin cannot disable themselves");
         }
 

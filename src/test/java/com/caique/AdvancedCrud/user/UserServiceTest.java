@@ -115,12 +115,15 @@ class UserServiceTest {
         UUID publicId = UUID.randomUUID();
         User user = mock(User.class);
         when(user.getEmail()).thenReturn("old@example.com");
+        when(user.getPasswordHash()).thenReturn("storedHash");
         when(userRepository.findByPublicIdAndDeletedAtIsNull(publicId))
                 .thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("correctCurrent", "storedHash"))
+                .thenReturn(true);
         when(userRepository.existsByEmailAndDeletedAtIsNull("taken@example.com"))
                 .thenReturn(true);
 
-        UpdateUserRequest request = new UpdateUserRequest("Name", "taken@example.com");
+        UpdateUserRequest request = new UpdateUserRequest("Name", "taken@example.com", "correctCurrent");
 
         assertThatThrownBy(() -> userService.updateProfile(publicId, request))
                 .isInstanceOf(EmailAlreadyExistsException.class);
@@ -134,13 +137,70 @@ class UserServiceTest {
         when(userRepository.findByPublicIdAndDeletedAtIsNull(publicId))
                 .thenReturn(Optional.of(user));
 
-        UpdateUserRequest request = new UpdateUserRequest("New Name", "same@example.com");
+        UpdateUserRequest request = new UpdateUserRequest("New Name", "same@example.com", null);
 
         assertThatCode(() -> userService.updateProfile(publicId, request))
                 .doesNotThrowAnyException();
 
         verify(userRepository, never()).existsByEmailAndDeletedAtIsNull("same@example.com");
         verify(user).setName("New Name");
+        verify(refreshTokenService, never()).revokeAllSessions(any());
+    }
+
+    @Test
+    void updateProfile_changingEmailWithoutPassword_throwsInvalidPassword() {
+        UUID publicId = UUID.randomUUID();
+        User user = mock(User.class);
+        when(user.getEmail()).thenReturn("old@example.com");
+        when(userRepository.findByPublicIdAndDeletedAtIsNull(publicId))
+                .thenReturn(Optional.of(user));
+
+        UpdateUserRequest request = new UpdateUserRequest("Name", "new@example.com", null);
+
+        assertThatThrownBy(() -> userService.updateProfile(publicId, request))
+                .isInstanceOf(InvalidPasswordException.class);
+
+        verify(user, never()).setEmail(anyString());
+    }
+
+    @Test
+    void updateProfile_changingEmailWithWrongPassword_throwsInvalidPassword() {
+        UUID publicId = UUID.randomUUID();
+        User user = mock(User.class);
+        when(user.getEmail()).thenReturn("old@example.com");
+        when(user.getPasswordHash()).thenReturn("storedHash");
+        when(userRepository.findByPublicIdAndDeletedAtIsNull(publicId))
+                .thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("wrongCurrent", "storedHash"))
+                .thenReturn(false);
+
+        UpdateUserRequest request = new UpdateUserRequest("Name", "new@example.com", "wrongCurrent");
+
+        assertThatThrownBy(() -> userService.updateProfile(publicId, request))
+                .isInstanceOf(InvalidPasswordException.class);
+
+        verify(user, never()).setEmail(anyString());
+    }
+
+    @Test
+    void updateProfile_changingEmailWithCorrectPassword_updatesAndRevokesSessions() {
+        UUID publicId = UUID.randomUUID();
+        User user = mock(User.class);
+        when(user.getEmail()).thenReturn("old@example.com");
+        when(user.getPasswordHash()).thenReturn("storedHash");
+        when(userRepository.findByPublicIdAndDeletedAtIsNull(publicId))
+                .thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("correctCurrent", "storedHash"))
+                .thenReturn(true);
+        when(userRepository.existsByEmailAndDeletedAtIsNull("new@example.com"))
+                .thenReturn(false);
+
+        UpdateUserRequest request = new UpdateUserRequest("Name", "new@example.com", "correctCurrent");
+
+        userService.updateProfile(publicId, request);
+
+        verify(user).setEmail("new@example.com");
+        verify(refreshTokenService).revokeAllSessions(publicId);
     }
 
     @Test

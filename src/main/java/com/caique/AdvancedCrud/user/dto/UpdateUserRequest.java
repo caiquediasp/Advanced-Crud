@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Size;
 
 public record UpdateUserRequest(
         @NotBlank @Size(max = 150) String name,
-        @Email @NotBlank @Size(max = 255) String email
+        @Email @NotBlank @Size(max = 255) String email,
+        String currentPassword
 ) {
 }
