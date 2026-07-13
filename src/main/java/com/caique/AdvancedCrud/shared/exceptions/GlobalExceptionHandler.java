@@ -104,7 +104,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(TooManyRequestsException.class)
-    public ProblemDetail handleTooRequestsException(TooManyRequestsException ex) {
+    public ProblemDetail handleTooManyRequestsException(TooManyRequestsException ex) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(
                 HttpStatus.TOO_MANY_REQUESTS, ex.getMessage()
         );
