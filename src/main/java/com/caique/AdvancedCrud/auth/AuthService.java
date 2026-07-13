@@ -32,7 +32,7 @@ public class AuthService {
     private final RefreshRateLimitService refreshRateLimitService;
     private final AuthenticationManager authenticationManager;
 
-    private final Counter loginSucessCounter;
+    private final Counter loginSuccessCounter;
     private final Counter loginFailedCounter;
 
     public AuthService(UserService userService, UserDetailsServiceImpl userDetailsService, TokenService tokenService, RefreshTokenService refreshTokenService, LoginRateLimitService loginRateLimitService, RefreshRateLimitService refreshRateLimitService, AuthenticationManager authenticationManager, MeterRegistry meterRegistry) {
@@ -44,7 +44,7 @@ public class AuthService {
         this.refreshRateLimitService = refreshRateLimitService;
         this.authenticationManager = authenticationManager;
 
-        this.loginSucessCounter = Counter.builder("auth.login")
+        this.loginSuccessCounter = Counter.builder("auth.login")
                 .tag("result", "success")
                 .description("Login Attempts")
                 .register(meterRegistry);
@@ -74,7 +74,7 @@ public class AuthService {
             String accessToken = tokenService.generateAccessToken(userDetails);
             UUID refreshToken = refreshTokenService.createNewToken(userId);
 
-            loginSucessCounter.increment();
+            loginSuccessCounter.increment();
             return new TokenResponse(accessToken, refreshToken.toString(), tokenService.accessTokenTtlSeconds());
         } catch (AuthenticationException e) {
             loginRateLimitService.recordFailure(request.email(), ip);
