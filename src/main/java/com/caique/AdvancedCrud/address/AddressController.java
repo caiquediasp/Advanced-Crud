@@ -7,6 +7,7 @@ import com.caique.AdvancedCrud.address.dto.UpdateAddressRequest;
 import com.caique.AdvancedCrud.address.viacep.ViaCepClient;
 import com.caique.AdvancedCrud.address.viacep.ViaCepResponse;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -73,7 +74,7 @@ public class AddressController {
     }
 
     @GetMapping("/lookup/{cep}")
-    public LookupResponse lookup(@PathVariable String cep) {
+    public LookupResponse lookup(@PathVariable @Pattern(regexp = "\\d{8}") String cep) {
         ViaCepResponse viaCep = viaCepClient.getAddress(cep);
         return new LookupResponse(
                 viaCep.cep().replace("-", ""),

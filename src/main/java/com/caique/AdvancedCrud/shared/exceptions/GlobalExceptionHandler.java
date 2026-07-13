@@ -8,6 +8,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
@@ -184,6 +185,16 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST, "Invalid value for parameter '" + ex.getName() + "'"
         );
         pd.setTitle("Invalid Parameter");
+        return pd;
+    }
+
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public ProblemDetail
+    handleHandlerMethodValidation(HandlerMethodValidationException ex) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST, "Validation Failed"
+        );
+        pd.setTitle("Validation Error");
         return pd;
     }
 
