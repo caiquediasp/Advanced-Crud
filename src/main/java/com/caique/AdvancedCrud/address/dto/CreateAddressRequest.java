@@ -11,6 +11,6 @@ public record CreateAddressRequest(
         @Size(max = 100) String complement,
         @NotBlank @Size(max = 100) String neighborhood,
         @NotBlank @Size(max = 100) String city,
-        @NotBlank @Pattern(regexp = "[A-Z]{2}") @Size(min = 2, max = 2) String state
+        @NotBlank @Pattern(regexp = "[A-Z]{2}", message = "State must be 2 uppercase letters") String state
 ) {
 }
