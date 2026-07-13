@@ -246,13 +246,20 @@ public class GlobalExceptionHandler {
         }
     }
 
-    private String resumeStackTrace(Exception ex) {
-        StackTraceElement[] elements = ex.getStackTrace();
+    private String resumeStackTrace(Throwable ex) {
         StringBuilder sb = new StringBuilder();
-        sb.append(ex.toString()).append("\n");
-        int limit = Math.min(elements.length, 10);
-        for (int i = 0; i < limit; i++) {
-            sb.append("\tat ").append(elements[i]).append("\n");
+        Throwable current = ex;
+        while (current != null) {
+            sb.append(current).append("\n");
+            StackTraceElement[] elements = current.getStackTrace();
+            int limit = Math.min(elements.length, 5);
+            for (int i = 0; i < limit; i++) {
+                sb.append("\tat ").append(elements[i]).append("\n");
+            }
+            current = current.getCause();
+            if (current != null) {
+                sb.append("Caused by: ");
+            }
         }
         return sb.toString();
     }

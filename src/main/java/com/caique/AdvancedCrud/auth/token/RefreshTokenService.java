@@ -115,15 +115,20 @@ public class RefreshTokenService {
           if redis.call('GET', KEYS[2]) ~= 'valid' then
               return 'FAMILY_INVALID'
           end
+          
+          local ttl = redis.call('TTL', KEYS[2])
+          if ttl <= 0 then
+            ttl = tonumber(ARGV[1])
+          end
 
           if token.used then
-              redis.call('SET', KEYS[2], 'compromised', 'EX', ARGV[1])
+              redis.call('SET', KEYS[2], 'compromised', 'EX', ttl)
               return 'REUSE_DETECTED'
           end
 
           token.used = true
-          redis.call('SET', KEYS[1], cjson.encode(token), 'EX', ARGV[1])
-          redis.call('SET', KEYS[3], ARGV[2], 'EX', ARGV[1])
+          redis.call('SET', KEYS[1], cjson.encode(token), 'EX', ttl)
+          redis.call('SET', KEYS[3], ARGV[2], 'EX', ttl)
           return 'OK'
           """, String.class);
 
