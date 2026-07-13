@@ -41,9 +41,8 @@ public class LoginRateLimitService {
         increment(IP_PREFIX + ip);
     }
 
-    public void reset(String email, String ip) {
+    public void reset(String email) {
         redis.delete(EMAIL_PREFIX + email);
-        redis.delete(IP_PREFIX + ip);
     }
 
     private long countOf(String key) {

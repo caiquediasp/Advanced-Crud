@@ -66,7 +66,7 @@ public class AuthService {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.email(), request.password()));
 
-            loginRateLimitService.reset(request.email(), ip);
+            loginRateLimitService.reset(request.email());
 
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
             UUID userId = userDetails.getUser().getPublicId();
