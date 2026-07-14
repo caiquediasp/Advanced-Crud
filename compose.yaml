@@ -56,9 +56,21 @@ services:
       - grafana-data:/var/lib/grafana
     restart: unless-stopped
 
+  sonarqube:
+    image: sonarqube:community
+    container_name: sonarqube
+    ports:
+      - '9000:9000'
+    volumes:
+      - sonarqube-data:/opt/sonarqube/data
+      - sonarqube-extensions:/opt/sonarqube/extensions
+    restart: unless-stopped
+
 volumes:
   pgdata:
   redis-data:
     driver: local
   rabbitmq-data:
   grafana-data:
+  sonarqube-data:
+  sonarqube-extensions:
