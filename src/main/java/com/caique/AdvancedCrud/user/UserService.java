@@ -12,6 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -35,6 +36,7 @@ public class UserService {
 
     @Transactional
     public void createUser(String name, String email, String password) {
+        email = email.toLowerCase(Locale.ROOT);
         if (userRepository.existsByEmailAndDeletedAtIsNull(email)) {
             throw new EmailAlreadyExistsException(email);
         }
@@ -58,10 +60,11 @@ public class UserService {
 
     @Transactional
     public UserResponse updateProfile(UUID publicId, UpdateUserRequest request) {
+        String email = request.email().toLowerCase(Locale.ROOT);
         User user = userRepository.findByPublicIdAndDeletedAtIsNull(publicId)
                 .orElseThrow(() -> new UserNotFoundException(publicId));
 
-        boolean emailChanged = !user.getEmail().equals(request.email());
+        boolean emailChanged = !user.getEmail().toLowerCase(Locale.ROOT).equals(email);
 
         if (emailChanged) {
             if (request.currentPassword() == null
@@ -69,13 +72,13 @@ public class UserService {
                 throw new InvalidPasswordException();
             }
 
-            if (userRepository.existsByEmailAndDeletedAtIsNull(request.email())) {
-                throw new EmailAlreadyExistsException(request.email());
+            if (userRepository.existsByEmailAndDeletedAtIsNull(email)) {
+                throw new EmailAlreadyExistsException(email);
             }
         }
 
         user.setName(request.name());
-        user.setEmail(request.email());
+        user.setEmail(email);
 
         if (emailChanged) refreshTokenService.revokeAllSessions(publicId);
         return userMapper.toResponse(user);

@@ -19,6 +19,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 
+import java.util.Locale;
 import java.util.UUID;
 
 @Service
@@ -60,13 +61,14 @@ public class AuthService {
     }
 
     public TokenResponse login(LoginRequest request, String ip) {
-        loginRateLimitService.checkAllowed(request.email(), ip);
+        String email = request.email().toLowerCase(Locale.ROOT);
+        loginRateLimitService.checkAllowed(email, ip);
 
         try {
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.email(), request.password()));
+                    new UsernamePasswordAuthenticationToken(email, request.password()));
 
-            loginRateLimitService.reset(request.email());
+            loginRateLimitService.reset(email);
 
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
             UUID userId = userDetails.getUser().getPublicId();
@@ -77,7 +79,7 @@ public class AuthService {
             loginSuccessCounter.increment();
             return new TokenResponse(accessToken, refreshToken.toString(), tokenService.accessTokenTtlSeconds());
         } catch (AuthenticationException e) {
-            loginRateLimitService.recordFailure(request.email(), ip);
+            loginRateLimitService.recordFailure(email, ip);
             loginFailedCounter.increment();
             throw e;
         }
