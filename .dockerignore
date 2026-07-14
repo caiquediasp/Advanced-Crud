@@ -1,0 +1,7 @@
+target/
+.git/
+.idea/
+documentation/
+*.md
+compose.yaml
+prometheus.yml

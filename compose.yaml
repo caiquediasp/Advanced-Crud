@@ -1,4 +1,23 @@
 services:
+  app:
+    build: .
+    container_name: advanced-crud
+    ports:
+      - '8080:8080'
+      - '8081:8081'
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/mydatabase
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_RABBITMQ_HOST=rabbitmq
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
   postgres:
     image: 'postgres:18.4'
     environment:
@@ -9,6 +28,11 @@ services:
       - '9876:5432'
     volumes:
       - pgdata:/var/lib/postgresql/
+    healthcheck:
+      test: [ 'CMD-SHELL', 'pg_isready -U myuser -d mydatabase' ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   redis:
     image: redis:8.8.0
@@ -19,6 +43,11 @@ services:
       - redis-data:/data
     command: redis-server --requirepass redisPassword --appendonly yes
     restart: unless-stopped
+    healthcheck:
+      test: [ 'CMD', 'redis-cli', '-a', 'redisPassword', 'ping' ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   rabbitmq:
     image: rabbitmq:4.3-management
@@ -32,6 +61,11 @@ services:
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
     restart: unless-stopped
+    healthcheck:
+      test: [ 'CMD', 'rabbitmq-diagnostics', '-q', 'ping' ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   prometheus:
     image: prom/prometheus:v3.6.0
