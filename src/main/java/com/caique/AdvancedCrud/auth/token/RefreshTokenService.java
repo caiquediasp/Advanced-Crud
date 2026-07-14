@@ -94,7 +94,7 @@ public class RefreshTokenService {
 
         if (familyIds != null) {
             for (String familyId : familyIds) {
-                familyRedis.opsForValue().set(FAMILY_PREFIX + familyId, "compromised", TTL);
+                familyRedis.execute(REVOKE_SCRIPT, List.of(FAMILY_PREFIX + familyId));
             }
         }
 
@@ -105,31 +105,36 @@ public class RefreshTokenService {
     }
 
     private static final RedisScript<String> ROTATE_SCRIPT = RedisScript.of("""
-          local token_json = redis.call('GET', KEYS[1])
-          if not token_json then
-              return 'NOT_FOUND'
-          end
+            local token_json = redis.call('GET', KEYS[1])
+            if not token_json then
+                return 'NOT_FOUND'
+            end
+            
+            local token = cjson.decode(token_json)
+            
+            if redis.call('GET', KEYS[2]) ~= 'valid' then
+                return 'FAMILY_INVALID'
+            end
+            
+            local ttl = redis.call('TTL', KEYS[2])
+            if ttl <= 0 then
+              ttl = tonumber(ARGV[1])
+            end
+            
+            if token.used then
+                redis.call('SET', KEYS[2], 'compromised', 'EX', ttl)
+                return 'REUSE_DETECTED'
+            end
+            
+            token.used = true
+            redis.call('SET', KEYS[1], cjson.encode(token), 'EX', ttl)
+            redis.call('SET', KEYS[3], ARGV[2], 'EX', ttl)
+            return 'OK'
+            """, String.class);
 
-          local token = cjson.decode(token_json)
-
-          if redis.call('GET', KEYS[2]) ~= 'valid' then
-              return 'FAMILY_INVALID'
-          end
-          
-          local ttl = redis.call('TTL', KEYS[2])
-          if ttl <= 0 then
-            ttl = tonumber(ARGV[1])
-          end
-
-          if token.used then
-              redis.call('SET', KEYS[2], 'compromised', 'EX', ttl)
-              return 'REUSE_DETECTED'
-          end
-
-          token.used = true
-          redis.call('SET', KEYS[1], cjson.encode(token), 'EX', ttl)
-          redis.call('SET', KEYS[3], ARGV[2], 'EX', ttl)
-          return 'OK'
-          """, String.class);
+    private static final RedisScript<String> REVOKE_SCRIPT = RedisScript.of("""
+            redis.call('SET', KEYS[1], 'compromised', 'XX', 'KEEPTTL')
+            return 'OK'
+            """, String.class);
 
 }
