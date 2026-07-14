@@ -20,8 +20,8 @@ jobs:
       - run: >
           ./mvnw -B verify
           org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
-          -Dsonar.projetKey=caiquediasp_Advanced-Crud
+          -Dsonar.projectKey=caiquediasp_Advanced-Crud
           -Dsonar.organization=caiquediasp
           -Dsonar.host.url=https://sonarcloud.io
         env:
-          SONAR_TOKEN: ${{ secret.SONAR_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
