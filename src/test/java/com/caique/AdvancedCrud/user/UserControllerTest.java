@@ -2,7 +2,7 @@ package com.caique.AdvancedCrud.user;
 
 import com.caique.AdvancedCrud.auth.token.RefreshTokenService;
 import com.caique.AdvancedCrud.shared.config.SecurityConfig;
-import com.caique.AdvancedCrud.shared.errorLog.ErrorLogPublisher;
+import com.caique.AdvancedCrud.shared.errorlog.ErrorLogPublisher;
 import com.caique.AdvancedCrud.user.dto.UserResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

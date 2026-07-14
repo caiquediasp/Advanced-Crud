@@ -1,4 +1,4 @@
-package com.caique.AdvancedCrud.shared.errorLog;
+package com.caique.AdvancedCrud.shared.errorlog;
 
 import com.caique.AdvancedCrud.shared.config.RabbitConfig;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;

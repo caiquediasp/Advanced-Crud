@@ -1,7 +1,7 @@
 package com.caique.AdvancedCrud.auth;
 
 import com.caique.AdvancedCrud.TestcontainersConfiguration;
-import com.caique.AdvancedCrud.shared.errorLog.ErrorLogRepository;
+import com.caique.AdvancedCrud.shared.errorlog.ErrorLogRepository;
 import com.caique.AdvancedCrud.user.Role;
 import com.caique.AdvancedCrud.user.RoleRepository;
 import com.caique.AdvancedCrud.user.User;

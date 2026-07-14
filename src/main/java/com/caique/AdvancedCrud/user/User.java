@@ -7,6 +7,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -68,7 +69,7 @@ public class User {
     }
 
     public void delete() {
-        this.deletedAt = OffsetDateTime.now();
+        this.deletedAt = OffsetDateTime.now(ZoneOffset.UTC);
     }
 
 }

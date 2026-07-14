@@ -1,4 +1,4 @@
-package com.caique.AdvancedCrud.auth.rateLimit;
+package com.caique.AdvancedCrud.auth.ratelimit;
 
 import com.caique.AdvancedCrud.shared.exceptions.TooManyRequestsException;
 import io.micrometer.core.instrument.Counter;

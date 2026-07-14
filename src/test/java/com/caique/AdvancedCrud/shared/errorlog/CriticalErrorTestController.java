@@ -1,4 +1,4 @@
-package com.caique.AdvancedCrud.shared.errorLog;
+package com.caique.AdvancedCrud.shared.errorlog;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
