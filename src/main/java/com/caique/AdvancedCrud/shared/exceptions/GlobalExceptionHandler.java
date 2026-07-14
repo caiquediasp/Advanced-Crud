@@ -8,6 +8,9 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpMediaTypeNotAcceptableException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -189,12 +192,38 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(HandlerMethodValidationException.class)
-    public ProblemDetail
-    handleHandlerMethodValidation(HandlerMethodValidationException ex) {
+    public ProblemDetail handleHandlerMethodValidation(HandlerMethodValidationException ex) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(
                 HttpStatus.BAD_REQUEST, "Validation Failed"
         );
         pd.setTitle("Validation Error");
+        return pd;
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ProblemDetail handleHttpMediaTypeNotSupportedException(HttpMediaTypeNotSupportedException ex) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(
+                HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Current Media Type is Not Supported"
+        );
+        pd.setTitle("Unsupported Media Type");
+        return pd;
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ProblemDetail handleMissingServletRequestParameterException(MissingServletRequestParameterException ex) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST, ex.getParameterName()
+        );
+        pd.setTitle("Missing Servlet Request Parameter");
+        return pd;
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotAcceptableException.class)
+    public ProblemDetail handleHttpMediaTypeNotAcceptableException(HttpMediaTypeNotAcceptableException ex) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_ACCEPTABLE, "Current Media Type is Not Acceptable"
+        );
+        pd.setTitle("Unacceptable Media Type");
         return pd;
     }
 
