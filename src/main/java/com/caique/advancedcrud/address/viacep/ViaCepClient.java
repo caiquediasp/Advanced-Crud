@@ -33,9 +33,9 @@ public class ViaCepClient {
         return response;
     }
 
-    private ViaCepResponse fallback(String cep, Throwable t) {
-        if (t instanceof CepNotFoundException) {
-            throw (CepNotFoundException) t;
+    private ViaCepResponse fallback(Throwable t) {
+        if (t instanceof CepNotFoundException cepNotFoundException) {
+            throw cepNotFoundException;
         }
 
         throw new CepServiceUnavailableException();

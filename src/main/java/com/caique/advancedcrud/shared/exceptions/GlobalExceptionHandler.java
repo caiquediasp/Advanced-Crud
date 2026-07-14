@@ -31,6 +31,8 @@ import java.util.UUID;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final String RESOURCE_NOT_FOUND_TITLE = "Resource Not Found";
+
     private final ErrorLogPublisher errorLogPublisher;
 
     public GlobalExceptionHandler(ErrorLogPublisher errorLogPublisher) {
@@ -42,7 +44,7 @@ public class GlobalExceptionHandler {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(
                 HttpStatus.NOT_FOUND, ex.getMessage()
         );
-        pd.setTitle("Resource Not Found");
+        pd.setTitle(RESOURCE_NOT_FOUND_TITLE);
         return pd;
     }
 
@@ -51,7 +53,7 @@ public class GlobalExceptionHandler {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(
                 HttpStatus.NOT_FOUND, ex.getMessage()
         );
-        pd.setTitle("Resource Not Found");
+        pd.setTitle(RESOURCE_NOT_FOUND_TITLE);
         return pd;
     }
 
@@ -87,7 +89,7 @@ public class GlobalExceptionHandler {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(
                 HttpStatus.NOT_FOUND, ex.getMessage()
         );
-        pd.setTitle("Resource Not Found");
+        pd.setTitle(RESOURCE_NOT_FOUND_TITLE);
         return pd;
     }
 
@@ -232,7 +234,7 @@ public class GlobalExceptionHandler {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(
                 HttpStatus.NOT_FOUND, "Resource not found"
         );
-        pd.setTitle("Resource Not Found");
+        pd.setTitle(RESOURCE_NOT_FOUND_TITLE);
         return pd;
     }
 

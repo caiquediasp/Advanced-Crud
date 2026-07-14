@@ -222,8 +222,9 @@ class UserServiceTest {
         when(userRepository.findByPublicIdAndDeletedAtIsNull(adminId))
                 .thenReturn(Optional.of(user));
 
+        Set<String> roles = Set.of("ROLE_USER");
         assertThatThrownBy(() ->
-                userService.updateRoles(adminId, adminId, Set.of("ROLE_USER")))
+                userService.updateRoles(adminId, adminId, roles))
                 .isInstanceOf(SelfModificationException.class);
     }
 
@@ -239,8 +240,9 @@ class UserServiceTest {
         when(roleRepository.findByName("ROLE_USER"))
                 .thenReturn(Optional.of(mock(Role.class)));
 
+        Set<String> roles = Set.of("ROLE_ADMIN", "ROLE_USER");
         assertThatCode(() ->
-                userService.updateRoles(adminId, adminId, Set.of("ROLE_ADMIN", "ROLE_USER")))
+                userService.updateRoles(adminId, adminId, roles))
                 .doesNotThrowAnyException();
     }
 
@@ -254,8 +256,9 @@ class UserServiceTest {
         when(roleRepository.findByName("ROLE_FAKE"))
                 .thenReturn(Optional.empty());
 
+        Set<String> roles = Set.of("ROLE_FAKE");
         assertThatThrownBy(() ->
-                userService.updateRoles(adminId, targetId, Set.of("ROLE_FAKE")))
+                userService.updateRoles(adminId, targetId, roles))
                 .isInstanceOf(RoleNotFoundException.class);
     }
 
