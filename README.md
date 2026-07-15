@@ -68,6 +68,8 @@ flowchart LR
 
 Full interactive documentation on Swagger: `http://localhost:8080/swagger-ui.html`
 
+![Swagger UI](docs/img/swagger.png)
+
 ### Quick example
 
 ```bash
@@ -122,6 +124,8 @@ The API starts at `http://localhost:8080` with Flyway migrations applied automat
 | Prometheus | http://localhost:9090 |
 | Grafana | http://localhost:3000 |
 
+![Grafana](docs/img/grafana.png)
+
 ## Tests
 
 The integration tests use **Testcontainers** — real PostgreSQL, Redis, and RabbitMQ instances spin up in disposable containers, so Docker must be running:
@@ -131,6 +135,10 @@ The integration tests use **Testcontainers** — real PostgreSQL, Redis, and Rab
 ```
 
 The JaCoCo coverage report is generated at `target/site/jacoco/index.html`.
+
+Quality measured on SonarCloud:
+
+![SonarCloud](docs/img/sonarcloud.png)
 
 ## Design decisions
 

@@ -68,6 +68,8 @@ flowchart LR
 
 Documentação completa e interativa no Swagger: `http://localhost:8080/swagger-ui.html`
 
+![Swagger UI](docs/img/swagger.png)
+
 ### Exemplo rápido
 
 ```bash
@@ -122,6 +124,8 @@ A API sobe em `http://localhost:8080` com as migrations do Flyway aplicadas auto
 | Prometheus | http://localhost:9090 |
 | Grafana | http://localhost:3000 |
 
+![Grafana](docs/img/grafana.png)
+
 ## Testes
 
 Os testes de integração usam **Testcontainers** — PostgreSQL, Redis e RabbitMQ reais sobem em containers descartáveis, então o Docker precisa estar rodando:
@@ -131,6 +135,10 @@ Os testes de integração usam **Testcontainers** — PostgreSQL, Redis e Rabbit
 ```
 
 O relatório de cobertura do JaCoCo fica em `target/site/jacoco/index.html`.
+
+Qualidade medida no SonarCloud:
+
+![SonarCloud](docs/img/sonarcloud.png)
 
 ## Decisões de design
 
