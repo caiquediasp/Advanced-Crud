@@ -1,35 +1,37 @@
 # Advanced CRUD
 
+**English** | [Português](README.pt-BR.md)
+
 [![CI](https://github.com/caiquediasp/Advanced-Crud/actions/workflows/ci.yml/badge.svg)](https://github.com/caiquediasp/Advanced-Crud/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=caiquediasp_Advanced-Crud&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=caiquediasp_Advanced-Crud)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=caiquediasp_Advanced-Crud&metric=coverage)](https://sonarcloud.io/summary/new_code?id=caiquediasp_Advanced-Crud)
 
-API REST de gerenciamento de usuários e endereços construída com **Java 21** e **Spring Boot 4**, com foco em segurança, resiliência e qualidade de código.
+REST API for user and address management built with **Java 21** and **Spring Boot 4**, focused on security, resilience, and code quality.
 
-<!-- Quando fizer o deploy, descomente e ajuste a URL:
-> **Demo ao vivo:** [Swagger UI](https://SUA-URL-AQUI/swagger-ui.html)
+<!-- When deployed, uncomment and set the URL:
+> **Live demo:** [Swagger UI](https://YOUR-URL-HERE/swagger-ui.html)
 -->
 
-## Destaques
+## Highlights
 
-- **Autenticação JWT (RS256)** com rotação de refresh tokens e **detecção de reuso** — se um token rotacionado é usado de novo, toda a família de sessões é revogada atomicamente (script Lua no Redis)
-- **Rate limiting** por e-mail e por IP contra força bruta no login
-- **Pipeline assíncrono de erros críticos** com RabbitMQ: erro 500 → evento publicado → consumer idempotente persiste no banco; mensagens inválidas vão para a **dead letter queue**
-- **Integração resiliente** com a API ViaCEP: circuit breaker, retry com backoff exponencial e cache no Redis (Resilience4j)
-- **43 testes** unitários e de integração com **Testcontainers** (PostgreSQL, Redis e RabbitMQ reais) — 78% de cobertura
-- **Quality gate limpo** no SonarCloud, CI com GitHub Actions a cada push
-- **Observabilidade** com Actuator, Prometheus e Grafana
+- **JWT authentication (RS256)** with refresh token rotation and **reuse detection** — if a rotated token is used again, the whole session family is revoked atomically (Lua script on Redis)
+- **Rate limiting** by e-mail and by IP against login brute force
+- **Asynchronous critical-error pipeline** with RabbitMQ: 500 error → event published → idempotent consumer persists it to the database; invalid messages go to the **dead letter queue**
+- **Resilient integration** with the ViaCEP API: circuit breaker, retry with exponential backoff, and Redis cache (Resilience4j)
+- **43 unit and integration tests** with **Testcontainers** (real PostgreSQL, Redis, and RabbitMQ) — 78% coverage
+- **Clean quality gate** on SonarCloud, CI with GitHub Actions on every push
+- **Observability** with Actuator, Prometheus, and Grafana
 
-## Arquitetura
+## Architecture
 
 ```mermaid
 flowchart LR
-    Client([Cliente]) --> API[API REST<br/>Spring Boot 4]
+    Client([Client]) --> API[REST API<br/>Spring Boot 4]
     API --> PG[(PostgreSQL<br/>Flyway)]
-    API --> Redis[(Redis<br/>cache + sessões<br/>+ rate limit)]
-    API -- erro crítico --> MQ[RabbitMQ]
-    MQ --> Consumer[Consumer<br/>idempotente] --> PG
-    MQ -. mensagem inválida .-> DLQ[Dead Letter Queue]
+    API --> Redis[(Redis<br/>cache + sessions<br/>+ rate limit)]
+    API -- critical error --> MQ[RabbitMQ]
+    MQ --> Consumer[Idempotent<br/>consumer] --> PG
+    MQ -. invalid message .-> DLQ[Dead Letter Queue]
     API -- CB + retry + cache --> ViaCEP[ViaCEP API]
     Prom[Prometheus] --> API
     Graf[Grafana] --> Prom
@@ -37,50 +39,50 @@ flowchart LR
 
 ## Stack
 
-| Categoria | Tecnologias |
+| Category | Technologies |
 |---|---|
 | Core | Java 21, Spring Boot 4, Spring Security (OAuth2 Resource Server), Spring Data JPA |
-| Dados | PostgreSQL, Flyway, Redis |
-| Mensageria | RabbitMQ (DLQ, retry, consumer idempotente) |
-| Resiliência | Resilience4j (circuit breaker, retry, cache) |
-| Testes | JUnit 5, Mockito, Testcontainers, Awaitility, JaCoCo |
-| Qualidade & CI | SonarQube / SonarCloud, GitHub Actions |
-| Observabilidade | Actuator, Micrometer, Prometheus, Grafana |
-| Outros | MapStruct, Lombok, springdoc-openapi (Swagger) |
+| Data | PostgreSQL, Flyway, Redis |
+| Messaging | RabbitMQ (DLQ, retry, idempotent consumer) |
+| Resilience | Resilience4j (circuit breaker, retry, cache) |
+| Testing | JUnit 5, Mockito, Testcontainers, Awaitility, JaCoCo |
+| Quality & CI | SonarQube / SonarCloud, GitHub Actions |
+| Observability | Actuator, Micrometer, Prometheus, Grafana |
+| Other | MapStruct, Lombok, springdoc-openapi (Swagger) |
 
 ## Endpoints
 
-| Método | Rota | Descrição |
+| Method | Route | Description |
 |---|---|---|
-| `POST` | `/api/v1/auth/register` | Cadastro de usuário |
-| `POST` | `/api/v1/auth/login` | Login (retorna access + refresh token) |
-| `POST` | `/api/v1/auth/refresh` | Rotação do refresh token |
-| `GET/PUT` | `/api/v1/users/me` | Perfil do usuário autenticado |
-| `PATCH` | `/api/v1/users/me/password` | Troca de senha |
-| `DELETE` | `/api/v1/users/me` | Exclusão da conta (soft delete) |
-| `POST` | `/api/v1/users/me/logout-all` | Revoga todas as sessões |
-| `GET/POST/PUT/DELETE` | `/api/v1/addresses` | CRUD de endereços |
-| `PATCH` | `/api/v1/addresses/{id}/primary` | Define endereço principal |
-| `GET` | `/api/v1/addresses/lookup/{cep}` | Consulta CEP via ViaCEP |
-| `GET/PATCH` | `/api/v1/admin/users/**` | Gestão de usuários (role ADMIN) |
+| `POST` | `/api/v1/auth/register` | User registration |
+| `POST` | `/api/v1/auth/login` | Login (returns access + refresh token) |
+| `POST` | `/api/v1/auth/refresh` | Refresh token rotation |
+| `GET/PUT` | `/api/v1/users/me` | Authenticated user profile |
+| `PATCH` | `/api/v1/users/me/password` | Password change |
+| `DELETE` | `/api/v1/users/me` | Account deletion (soft delete) |
+| `POST` | `/api/v1/users/me/logout-all` | Revokes all sessions |
+| `GET/POST/PUT/DELETE` | `/api/v1/addresses` | Address CRUD |
+| `PATCH` | `/api/v1/addresses/{id}/primary` | Sets the primary address |
+| `GET` | `/api/v1/addresses/lookup/{cep}` | CEP (zip code) lookup via ViaCEP |
+| `GET/PATCH` | `/api/v1/admin/users/**` | User management (ADMIN role) |
 
-Documentação completa e interativa no Swagger: `http://localhost:8080/swagger-ui.html`
+Full interactive documentation on Swagger: `http://localhost:8080/swagger-ui.html`
 
-### Exemplo rápido
+### Quick example
 
 ```bash
-# Cadastro
+# Register
 curl -X POST http://localhost:8080/api/v1/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"name": "Caique", "email": "caique@email.com", "password": "SenhaForte@123"}'
+  -d '{"name": "Caique", "email": "caique@email.com", "password": "StrongPass@123"}'
 
 # Login
 curl -X POST http://localhost:8080/api/v1/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email": "caique@email.com", "password": "SenhaForte@123"}'
+  -d '{"email": "caique@email.com", "password": "StrongPass@123"}'
 ```
 
-Resposta do login:
+Login response:
 
 ```json
 {
@@ -91,28 +93,28 @@ Resposta do login:
 }
 ```
 
-Use o `accessToken` no header das rotas protegidas: `Authorization: Bearer <token>`.
+Use the `accessToken` in the header of protected routes: `Authorization: Bearer <token>`.
 
-## Como rodar
+## How to run
 
-Pré-requisitos: **Docker** e **Docker Compose**.
+Prerequisites: **Docker** and **Docker Compose**.
 
-**1. Gere o par de chaves RSA** usado para assinar os JWTs (não versionado por segurança):
+**1. Generate the RSA key pair** used to sign the JWTs (not versioned for security reasons):
 
 ```bash
 openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out src/main/resources/keys/private.pem
 openssl rsa -in src/main/resources/keys/private.pem -pubout -out src/main/resources/keys/public.pem
 ```
 
-**2. Suba tudo com o Compose** (app + PostgreSQL + Redis + RabbitMQ + Prometheus + Grafana):
+**2. Bring everything up with Compose** (app + PostgreSQL + Redis + RabbitMQ + Prometheus + Grafana):
 
 ```bash
 docker compose up --build
 ```
 
-A API sobe em `http://localhost:8080` com as migrations do Flyway aplicadas automaticamente.
+The API starts at `http://localhost:8080` with Flyway migrations applied automatically.
 
-| Serviço | URL |
+| Service | URL |
 |---|---|
 | Swagger UI | http://localhost:8080/swagger-ui.html |
 | Actuator (health, metrics) | http://localhost:8081/actuator/health |
@@ -120,28 +122,28 @@ A API sobe em `http://localhost:8080` com as migrations do Flyway aplicadas auto
 | Prometheus | http://localhost:9090 |
 | Grafana | http://localhost:3000 |
 
-## Testes
+## Tests
 
-Os testes de integração usam **Testcontainers** — PostgreSQL, Redis e RabbitMQ reais sobem em containers descartáveis, então o Docker precisa estar rodando:
+The integration tests use **Testcontainers** — real PostgreSQL, Redis, and RabbitMQ instances spin up in disposable containers, so Docker must be running:
 
 ```bash
 ./mvnw verify
 ```
 
-O relatório de cobertura do JaCoCo fica em `target/site/jacoco/index.html`.
+The JaCoCo coverage report is generated at `target/site/jacoco/index.html`.
 
-## Decisões de design
+## Design decisions
 
-- **RS256 em vez de HS256**: chave privada assina, pública valida — permite que outros serviços validem tokens sem compartilhar segredo.
-- **Refresh token com família de sessões**: cada login cria uma família; reuso de um token já rotacionado marca a família como comprometida via script Lua (operação atômica no Redis, sem race condition).
-- **Consumer idempotente**: RabbitMQ garante entrega *at-least-once*, então o consumer checa o `eventId` antes de persistir — mensagem duplicada não gera linha duplicada.
-- **`default-requeue-rejected=false`**: mensagem que falha na desserialização vai direto para a DLQ em vez de reentrar na fila em loop infinito.
-- **Circuit breaker ignora `CepNotFoundException`**: CEP inexistente é resposta válida do ViaCEP, não falha de infraestrutura — não deve abrir o circuito nem disparar retry.
+- **RS256 instead of HS256**: the private key signs, the public key verifies — other services can validate tokens without sharing a secret.
+- **Refresh tokens with session families**: each login creates a family; reusing an already-rotated token marks the family as compromised via a Lua script (atomic operation on Redis, no race condition).
+- **Idempotent consumer**: RabbitMQ guarantees *at-least-once* delivery, so the consumer checks the `eventId` before persisting — a duplicate message never creates a duplicate row.
+- **`default-requeue-rejected=false`**: a message that fails deserialization goes straight to the DLQ instead of re-entering the queue in an infinite loop.
+- **Circuit breaker ignores `CepNotFoundException`**: a nonexistent CEP is a valid ViaCEP response, not an infrastructure failure — it should neither open the circuit nor trigger a retry.
 
-## Créditos
+## Credits
 
-Projeto inspirado no [person-crud](https://github.com/KozielGPC/person-crud), reimplementado do zero em Java/Spring com escopo expandido.
+Project inspired by [person-crud](https://github.com/KozielGPC/person-crud), reimplemented from scratch in Java/Spring with an expanded scope.
 
-## Licença
+## License
 
-Este projeto está sob a licença descrita em [LICENSE](LICENSE).
+This project is under the license described in [LICENSE](LICENSE).
